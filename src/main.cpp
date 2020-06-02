@@ -5,6 +5,8 @@
 #include <DHT_U.h>
 #include <Wire.h>
 #include <Adafruit_INA219.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 
 Adafruit_INA219 ina219;
 
@@ -14,7 +16,10 @@ Adafruit_INA219 ina219;
 
 //DallasTemperature sensors(&oneWire);
 
-#define msfPIN 53
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET -1
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 #define DHTPIN 2
 
@@ -22,63 +27,65 @@ Adafruit_INA219 ina219;
 
 DHT_Unified dht(DHTPIN, DHTTYPE);
 
-const int controlPin[16] = {22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37}; // define pins
+const int controlPin[16] = {22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37}; // define pins
 
-const int triggerType = LOW;// your relay type
-int loopDelay = 1000;// delay in loop
+const int triggerType = LOW; // your relay type
+int loopDelay = 1000;        // delay in loop
 int readDelay = 50;
 
-void setup() {
+void setup()
+{
   Serial.begin(9600);
   Serial.println();
 
   dht.begin();
   ina219.begin();
 
-  Serial.print("Pin");
-  Serial.print("Intensity,");
-  Serial.print("Celcius,");
+  Serial.print("Pin,");
+  Serial.print("Light Intensity,");
+  Serial.print("Temp C,");
   Serial.print("Humidity,");
-  Serial.print("Bus Voltage(V),");
-  Serial.print("Shunt Voltage(mV),"); 
-  Serial.print("Load Voltage(V),"); 
-  Serial.print("Current(mA),"); 
-  Serial.print("Power(mW),"); 
-  Serial.print("Shorted Bus Voltage(V),");
-  Serial.print("Shorted Shunt Voltage(mV),"); 
-  Serial.print("Shorted Load Voltage(V),"); 
-  Serial.print("Shorted Current(mA),"); 
-  Serial.print("Shorted Power(mW)"); 
+  Serial.print("Voltage(mV),");
+  Serial.print("Amperage(mA),");
+  Serial.print("Power(mW)");
   Serial.println();
-} 
 
-void loop() {
+  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { 
+    Serial.println(F("SSD1306 allocation failed"));
+    return; // Don't proceed, loop forever
+  }
+
+  display.clearDisplay();
+  display.print("Pin,");
+  display.print("Light Intensity,");
+  display.print("Temp C,");
+  display.print("Humidity,");
+  display.print("Voltage(mV),");
+  display.print("Amperage(mA),");
+  display.print("Power(mW)");
+  display.println();
+}
+
+void loop()
+{
 
   // Establish inputs
-  
   unsigned int lightIntensity;
   lightIntensity = analogRead(A14);
-  float shuntvoltage = 0;
-  float busvoltage = 0;
+  int voltage_mV = analogRead(A0);
   float current_mA = 0;
-  float loadvoltage = 0;
-  float power_mW = 0;
-
-  shuntvoltage = ina219.getShuntVoltage_mV();
-  busvoltage = ina219.getBusVoltage_V();
   current_mA = ina219.getCurrent_mA();
-  power_mW = ina219.getPower_mW();
-  loadvoltage = busvoltage + (shuntvoltage / 1000);
 
-  sensors_event_t event;    
+  sensors_event_t event;
   dht.temperature().getEvent(&event);
   dht.humidity().getEvent(&event);
 
   // Collect Data
-  for(int i=0; i<16; i++)  {
-    delay(readDelay);
-    pinMode(controlPin[i], OUTPUT);     // set pin as output
-    digitalWrite(controlPin[i], LOW);   // set initial state OFF for low trigger relay
+  delay(readDelay);
+  for (int i = 0; i < 2; i++)
+    {
+      pinMode(controlPin[i], OUTPUT);   // set pin as output
+      digitalWrite(controlPin[i], LOW); // set initial state OFF for low trigger relay
       Serial.print(controlPin[i]);
       Serial.print(",");
       Serial.print(lightIntensity);
@@ -87,39 +94,14 @@ void loop() {
       Serial.print(",");
       Serial.print(event.relative_humidity);
       Serial.print(",");
-      Serial.print(busvoltage);
-      Serial.print(",");
-      Serial.print(shuntvoltage);
-      Serial.print(",");
-      Serial.print(loadvoltage);
+      Serial.print(voltage_mV);
       Serial.print(",");
       Serial.print(current_mA);
       Serial.print(",");
-      Serial.print(power_mW);
-      Serial.print(",");
-      delay(readDelay);
-      digitalWrite(msfPIN, LOW);
-      // Get Shorted Info
-        shuntvoltage = ina219.getShuntVoltage_mV();
-        busvoltage = ina219.getBusVoltage_V();
-        current_mA = ina219.getCurrent_mA();
-        power_mW = ina219.getPower_mW();
-        loadvoltage = busvoltage + (shuntvoltage / 1000);
-        Serial.print(busvoltage);
-        Serial.print(",");
-        Serial.print(shuntvoltage);
-        Serial.print(",");
-        Serial.print(loadvoltage);
-        Serial.print(",");
-        Serial.print(current_mA);
-        Serial.print(",");
-        Serial.print(power_mW);
-        Serial.println("");
-      digitalWrite(msfPIN, HIGH);
-      delay(readDelay);
-      //  sensors.requestTemperatures();
-      //  Serial.println(sensors.getTempCByIndex(0));
-      digitalWrite(controlPin[i], HIGH);  // set initial state OFF for high trigger relay     
-    delay(loopDelay);
-  }
+      Serial.print((current_mA * voltage_mV));
+      Serial.println();
+
+      digitalWrite(controlPin[i], HIGH); // set initial state OFF for high trigger relay
+    }
+  delay(loopDelay);
 }
