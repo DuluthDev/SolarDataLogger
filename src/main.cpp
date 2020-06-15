@@ -1,4 +1,4 @@
-#include <Arduino.h>
+//#include <Arduino.h>
 //#include <DallasTemperature.h>
 //#include <OneWire.h>
 #include <DHT.h>
@@ -50,9 +50,10 @@ void setup()
   Serial.print("Power(mW)");
   Serial.println();
 
-  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { 
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x40))
+  {
     Serial.println(F("SSD1306 allocation failed"));
-    return; // Don't proceed, loop forever
+    return; // exit
   }
 
   display.clearDisplay();
@@ -69,39 +70,41 @@ void setup()
 void loop()
 {
 
-  // Establish inputs
+  // // Establish inputs
   unsigned int lightIntensity;
-  lightIntensity = analogRead(A14);
-  int voltage_mV = analogRead(A0);
+  lightIntensity = analogRead(A1);
+
+  float voltage_mV = 0;
   float current_mA = 0;
+  voltage_mV = ina219.getBusVoltage_V ();
   current_mA = ina219.getCurrent_mA();
 
   sensors_event_t event;
   dht.temperature().getEvent(&event);
   dht.humidity().getEvent(&event);
 
-  // Collect Data
-  delay(readDelay);
-  for (int i = 0; i < 2; i++)
-    {
-      pinMode(controlPin[i], OUTPUT);   // set pin as output
-      digitalWrite(controlPin[i], LOW); // set initial state OFF for low trigger relay
-      Serial.print(controlPin[i]);
-      Serial.print(",");
-      Serial.print(lightIntensity);
-      Serial.print(",");
-      Serial.print(event.temperature);
-      Serial.print(",");
-      Serial.print(event.relative_humidity);
-      Serial.print(",");
-      Serial.print(voltage_mV);
-      Serial.print(",");
-      Serial.print(current_mA);
-      Serial.print(",");
-      Serial.print((current_mA * voltage_mV));
-      Serial.println();
+  //Collect Data
+  // delay(readDelay);
+  // for (int i = 0; i < 2; i++)
+  // {
+  //   pinMode(controlPin[i], OUTPUT);   // set pin as output
+  //   digitalWrite(controlPin[i], LOW); // set initial state OFF for low trigger relay
+    // // Serial.print(controlPin[i]);
+    // Serial.print(",");
+    // Serial.print(lightIntensity);
+    // Serial.print(",");
+    // Serial.print(event.temperature);
+    // Serial.print(",");
+    // Serial.print(event.relative_humidity);
+    // Serial.print(",");
+    Serial.print(voltage_mV);
+    Serial.print(",");
+    Serial.print(current_mA);
+    Serial.print(",");
+    Serial.print((current_mA * voltage_mV));
+    Serial.println();
 
-      digitalWrite(controlPin[i], HIGH); // set initial state OFF for high trigger relay
-    }
+    // digitalWrite(controlPin[i], HIGH); // set initial state OFF for high trigger relay
+  // }
   delay(loopDelay);
 }
