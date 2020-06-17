@@ -1,6 +1,3 @@
-//#include <Arduino.h>
-//#include <DallasTemperature.h>
-//#include <OneWire.h>
 #include <DHT.h>
 #include <DHT_U.h>
 #include <Wire.h>
@@ -12,22 +9,13 @@
 
 Adafruit_INA219 ina219;
 
-//#define ONE_WIRE_BUS 14
-
-//OneWire oneWire(ONE_WIRE_BUS);
-
-//DallasTemperature sensors(&oneWire);
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define OLED_RESET -1
 Adafruit_SSD1306 display;
 
-#define DHTPIN 2
-
-#define DHTTYPE DHT22
-
-DHT_Unified dht(DHTPIN, DHTTYPE);
+DHT dht(2, DHT22);
 
 const int controlPin[16] = {22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37}; // define pins
 
@@ -86,7 +74,6 @@ void setup()
   Serial.println();
 
   dht.begin();
-  dht.temperature().enableAutoRange(true);
   ina219.begin();
 
   Serial.print("Pin,");
@@ -114,7 +101,7 @@ void setup()
   delay(1000);
   display.display();
 }
-// test 5
+
 void loop()
 {
 
@@ -122,7 +109,9 @@ void loop()
   unsigned int lightIntensity;
   float voltage_mV = 0;
   float current_mA = 0;
-  sensors_event_t event;
+
+  float humidity = dht.readHumidity();
+  int temperature = dht.readTemperature();
 
   // Collect Data
   for (int i = 0; i < 16; i++)
@@ -133,19 +122,16 @@ void loop()
     voltage_mV = ina219.getBusVoltage_V();
     current_mA = ina219.getCurrent_mA();
 
-    dht.temperature().getEvent(&event);
-    dht.humidity().getEvent(&event);
-
     // Output Data
 
     //pinMode(controlPin[i], OUTPUT);   // set pin as output
     // digitalWrite(controlPin[i], LOW); // set initial state OFF for low trigger relay
     
     // Log data to Serial interface
-    logData(controlPin[i], lightIntensity, event.temperature, event.relative_humidity, voltage_mV, current_mA);
+    logData(controlPin[i], lightIntensity, temperature, humidity, voltage_mV, current_mA);
 
     // Update Display
-    updateDisplay(controlPin[i], lightIntensity, voltage_mV, current_mA, event.temperature, event.relative_humidity);
+    updateDisplay(controlPin[i], lightIntensity, voltage_mV, current_mA, temperature, humidity);
 
     // digitalWrite(controlPin[i], HIGH); // set initial state OFF for high trigger relay
   }
