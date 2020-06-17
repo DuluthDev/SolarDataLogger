@@ -7,6 +7,8 @@
 #include <Adafruit_INA219.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <Fonts/FreeSans9pt7b.h>
+#include <Fonts/FreeSans12pt7b.h>
 
 Adafruit_INA219 ina219;
 
@@ -33,19 +35,30 @@ const int triggerType = LOW; // your relay type
 int loopDelay = 1000;        // delay in loop
 int readDelay = 50;
 
-int updateDisplay(int pin, float light, float volt, float amp)
+int updateDisplay(int pin, int light, float volt, float amp, int temp, int humidity)
 {
   // Prep DisplayQ
   display.clearDisplay();
-  display.println("Pin: ");
-  display.println("Light Intensity: ");
-  display.println("Voltage(mV): ");
-  display.println("Amperage(mA): ");
-  display.setCursor(105, 0);
+  display.setCursor(0, 0);
+  display.print("Pin: ");
   display.println(pin);
-  display.println(light);
-  display.println(volt);
-  display.println(amp);
+  display.setCursor(64, 0);
+  display.print("Light: ");
+  display.print(light);
+  display.setCursor(0, 10);
+  display.print("V's: ");
+  display.print(volt);
+  display.setCursor(64, 10);
+  display.print("mA's: ");
+  display.print(amp);
+  display.setCursor(0, 20);
+  display.print("Temp: ");
+  display.print(temp);
+  display.print("c");
+  display.setCursor(64, 20);
+  display.print("Humid: ");
+  display.print(humidity);
+  display.print("%");
   display.display();
 };
 
@@ -73,6 +86,7 @@ void setup()
   Serial.println();
 
   dht.begin();
+  dht.temperature().enableAutoRange(true);
   ina219.begin();
 
   Serial.print("Pin,");
@@ -94,6 +108,10 @@ void setup()
   display.setTextColor(WHITE);
   display.setRotation(0);
   display.setTextWrap(false);
+  display.setCursor(64,32);
+  display.setTextSize(1);
+  display.println("Loading...");
+  delay(1000);
   display.display();
 }
 
@@ -102,28 +120,32 @@ void loop()
 
   // Establish inputs
   unsigned int lightIntensity;
-  lightIntensity = analogRead(A1);
-
   float voltage_mV = 0;
   float current_mA = 0;
-  voltage_mV = ina219.getBusVoltage_V();
-  current_mA = ina219.getCurrent_mA();
-
   sensors_event_t event;
-  dht.temperature().getEvent(&event);
-  dht.humidity().getEvent(&event);
 
   // Collect Data
-  for (int i = 0; i < 2; i++)
+  for (int i = 0; i < 16; i++)
   {
-    pinMode(controlPin[i], OUTPUT);   // set pin as output
+
+    lightIntensity = analogRead(A1);
+
+    voltage_mV = ina219.getBusVoltage_V();
+    current_mA = ina219.getCurrent_mA();
+
+    dht.temperature().getEvent(&event);
+    dht.humidity().getEvent(&event);
+
+    // Output Data
+
+    //pinMode(controlPin[i], OUTPUT);   // set pin as output
     // digitalWrite(controlPin[i], LOW); // set initial state OFF for low trigger relay
     
     // Log data to Serial interface
     logData(controlPin[i], lightIntensity, event.temperature, event.relative_humidity, voltage_mV, current_mA);
 
     // Update Display
-    updateDisplay(controlPin[i], lightIntensity, voltage_mV, current_mA);
+    updateDisplay(controlPin[i], lightIntensity, voltage_mV, current_mA, event.temperature, event.relative_humidity);
 
     // digitalWrite(controlPin[i], HIGH); // set initial state OFF for high trigger relay
   }
