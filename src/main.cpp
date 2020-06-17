@@ -130,7 +130,7 @@ void loop()
     current_mA = ina219.getCurrent_mA();
 
     // Output Data
-
+    
     //pinMode(controlPin[i], OUTPUT);   // set pin as output
     // digitalWrite(controlPin[i], LOW); // set initial state OFF for low trigger relay
     
@@ -139,6 +139,29 @@ void loop()
 
     // Update Display
     updateDisplay(controlPin[i], lightIntensity, voltage_mV, current_mA, temperature, humidity);
+
+    // Get Shorted Data
+    pinMode(12, HIGH);
+    
+      delay(1000);
+
+      lightIntensity = analogRead(A1);
+
+      voltage_mV = ina219.getBusVoltage_V();
+      current_mA = ina219.getCurrent_mA();
+
+      // Output Data
+      
+      //pinMode(controlPin[i], OUTPUT);   // set pin as output
+      // digitalWrite(controlPin[i], LOW); // set initial state OFF for low trigger relay
+      
+      // Log data to Serial interface
+      logData(iteration, controlPin[i], lightIntensity, temperature, humidity, voltage_mV, current_mA);
+
+      // Update Display
+      updateDisplay(controlPin[i], lightIntensity, voltage_mV, current_mA, temperature, humidity);
+
+    pinMode(12, LOW);
 
     // digitalWrite(controlPin[i], HIGH); // set initial state OFF for high trigger relay
   delay(loopDelay);
