@@ -50,8 +50,10 @@ int updateDisplay(int pin, int light, float volt, float amp, int temp, int humid
   display.display();
 };
 
-int logData(int pin, float light, float temp, float humidity, float volt, float amp)
+int logData(int iteration, int pin, float light, float temp, float humidity, float volt, float amp)
 {
+  Serial.print(iteration);
+  Serial.print(",");
   Serial.print(pin);
   Serial.print(",");
   Serial.print(light);
@@ -67,6 +69,8 @@ int logData(int pin, float light, float temp, float humidity, float volt, float 
   Serial.print((amp * volt));
   Serial.println();
 };
+
+int iteration = 0;
 
 void setup()
 {
@@ -116,6 +120,8 @@ void loop()
   // Collect Data
   for (int i = 0; i < 16; i++)
   {
+    // Track Iterations
+    iteration++;
 
     lightIntensity = analogRead(A1);
 
@@ -128,12 +134,12 @@ void loop()
     // digitalWrite(controlPin[i], LOW); // set initial state OFF for low trigger relay
     
     // Log data to Serial interface
-    logData(controlPin[i], lightIntensity, temperature, humidity, voltage_mV, current_mA);
+    logData(iteration, controlPin[i], lightIntensity, temperature, humidity, voltage_mV, current_mA);
 
     // Update Display
     updateDisplay(controlPin[i], lightIntensity, voltage_mV, current_mA, temperature, humidity);
 
     // digitalWrite(controlPin[i], HIGH); // set initial state OFF for high trigger relay
-  }
   delay(loopDelay);
+  }
 }
