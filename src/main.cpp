@@ -19,7 +19,7 @@ Adafruit_INA219 ina219;
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define OLED_RESET -1
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+Adafruit_SSD1306 display;
 
 #define DHTPIN 2
 
@@ -32,6 +32,40 @@ const int controlPin[16] = {22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 
 const int triggerType = LOW; // your relay type
 int loopDelay = 1000;        // delay in loop
 int readDelay = 50;
+
+int updateDisplay(int pin, float light, float volt, float amp)
+{
+  // Prep DisplayQ
+  display.clearDisplay();
+  display.println("Pin: ");
+  display.println("Light Intensity: ");
+  display.println("Voltage(mV): ");
+  display.println("Amperage(mA): ");
+  display.setCursor(105, 0);
+  display.println(pin);
+  display.println(light);
+  display.println(volt);
+  display.println(amp);
+  display.display();
+};
+
+int logData(int pin, float light, float temp, float humidity, float volt, float amp)
+{
+  Serial.print(pin);
+  Serial.print(",");
+  Serial.print(light);
+  Serial.print(",");
+  Serial.print(temp);
+  Serial.print(",");
+  Serial.print(humidity);
+  Serial.print(",");
+  Serial.print(volt);
+  Serial.print(",");
+  Serial.print(amp);
+  Serial.print(",");
+  Serial.print((amp * volt));
+  Serial.println();
+};
 
 void setup()
 {
@@ -50,61 +84,48 @@ void setup()
   Serial.print("Power(mW)");
   Serial.println();
 
-  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x40))
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
   {
     Serial.println(F("SSD1306 allocation failed"));
     return; // exit
   }
 
   display.clearDisplay();
-  display.print("Pin,");
-  display.print("Light Intensity,");
-  display.print("Temp C,");
-  display.print("Humidity,");
-  display.print("Voltage(mV),");
-  display.print("Amperage(mA),");
-  display.print("Power(mW)");
-  display.println();
+  display.setTextColor(WHITE);
+  display.setRotation(0);
+  display.setTextWrap(false);
+  display.display();
 }
 
 void loop()
 {
 
-  // // Establish inputs
+  // Establish inputs
   unsigned int lightIntensity;
   lightIntensity = analogRead(A1);
 
   float voltage_mV = 0;
   float current_mA = 0;
-  voltage_mV = ina219.getBusVoltage_V ();
+  voltage_mV = ina219.getBusVoltage_V();
   current_mA = ina219.getCurrent_mA();
 
   sensors_event_t event;
   dht.temperature().getEvent(&event);
   dht.humidity().getEvent(&event);
 
-  //Collect Data
-  // delay(readDelay);
-  // for (int i = 0; i < 2; i++)
-  // {
-  //   pinMode(controlPin[i], OUTPUT);   // set pin as output
-  //   digitalWrite(controlPin[i], LOW); // set initial state OFF for low trigger relay
-    // // Serial.print(controlPin[i]);
-    // Serial.print(",");
-    // Serial.print(lightIntensity);
-    // Serial.print(",");
-    // Serial.print(event.temperature);
-    // Serial.print(",");
-    // Serial.print(event.relative_humidity);
-    // Serial.print(",");
-    Serial.print(voltage_mV);
-    Serial.print(",");
-    Serial.print(current_mA);
-    Serial.print(",");
-    Serial.print((current_mA * voltage_mV));
-    Serial.println();
+  // Collect Data
+  for (int i = 0; i < 2; i++)
+  {
+    pinMode(controlPin[i], OUTPUT);   // set pin as output
+    // digitalWrite(controlPin[i], LOW); // set initial state OFF for low trigger relay
+    
+    // Log data to Serial interface
+    logData(controlPin[i], lightIntensity, event.temperature, event.relative_humidity, voltage_mV, current_mA);
+
+    // Update Display
+    updateDisplay(controlPin[i], lightIntensity, voltage_mV, current_mA);
 
     // digitalWrite(controlPin[i], HIGH); // set initial state OFF for high trigger relay
-  // }
+  }
   delay(loopDelay);
 }
