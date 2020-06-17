@@ -17,11 +17,10 @@ Adafruit_SSD1306 display;
 
 DHT dht(2, DHT22);
 
-const int controlPin[16] = {22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37}; // define pins
+const int controlPin[16] = {22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37}; // define relay pins
 
-const int triggerType = LOW; // your relay type
-int loopDelay = 1000;        // delay in loop
-int readDelay = 50;
+const int triggerType = LOW; // relay type
+int loopDelay = 58000;        // delay in loop
 
 int updateDisplay(int pin, int light, float volt, float amp, int temp, int humidity)
 {
@@ -50,7 +49,7 @@ int updateDisplay(int pin, int light, float volt, float amp, int temp, int humid
   display.display();
 };
 
-int logData(int iteration, int pin, float light, float temp, float humidity, float volt, float amp)
+int logData(int iteration, int pin, int light, float temp, float humidity, float volt, float amp)
 {
   Serial.print(iteration);
   Serial.print(",");
@@ -114,6 +113,8 @@ void loop()
   unsigned int lightIntensity;
   float voltage_mV = 0;
   float current_mA = 0;
+  float s_voltage_mV = 0;
+  float s_current_mA = 0;
 
   float humidity = dht.readHumidity();
   int temperature = dht.readTemperature();
@@ -124,46 +125,30 @@ void loop()
     // Track Iterations
     iteration++;
 
-    lightIntensity = analogRead(A1);
-
-    voltage_mV = ina219.getBusVoltage_V();
-    current_mA = ina219.getCurrent_mA();
-
-    // Output Data
-    
-    //pinMode(controlPin[i], OUTPUT);   // set pin as output
+    // pinMode(controlPin[i], OUTPUT);   // set control pin as output
     // digitalWrite(controlPin[i], LOW); // set initial state OFF for low trigger relay
     
-    // Log data to Serial interface
-    logData(iteration, controlPin[i], lightIntensity, temperature, humidity, voltage_mV, current_mA);
-
-    // Update Display
-    updateDisplay(controlPin[i], lightIntensity, voltage_mV, current_mA, temperature, humidity);
-
-    // Get Shorted Data
+    lightIntensity = analogRead(A1);
+    voltage_mV = ina219.getBusVoltage_V();
+    current_mA = ina219.getCurrent_mA();
+   
+    // Record Shorted Current
     pinMode(12, HIGH);
-    
-      delay(1000);
-
-      lightIntensity = analogRead(A1);
-
-      voltage_mV = ina219.getBusVoltage_V();
-      current_mA = ina219.getCurrent_mA();
-
-      // Output Data
-      
-      //pinMode(controlPin[i], OUTPUT);   // set pin as output
-      // digitalWrite(controlPin[i], LOW); // set initial state OFF for low trigger relay
-      
-      // Log data to Serial interface
-      logData(iteration, controlPin[i], lightIntensity, temperature, humidity, voltage_mV, current_mA);
-
-      // Update Display
-      updateDisplay(controlPin[i], lightIntensity, voltage_mV, current_mA, temperature, humidity);
-
+      delay(500);
+      s_voltage_mV = ina219.getBusVoltage_V();
+      s_current_mA = ina219.getCurrent_mA();
     pinMode(12, LOW);
 
-    // digitalWrite(controlPin[i], HIGH); // set initial state OFF for high trigger relay
-  delay(loopDelay);
+    delay(500);
+
+    // Output Data
+    // Log data to Serial interface
+    logData(iteration, controlPin[i], lightIntensity, temperature, humidity, voltage_mV, s_current_mA);
+    // Update Display
+    updateDisplay(controlPin[i], lightIntensity, voltage_mV, s_current_mA, temperature, humidity);
+
+    // digitalWrite(controlPin[i], HIGH); // Turn off relay
+    delay(1000);
   }
+  delay(loopDelay);
 }
