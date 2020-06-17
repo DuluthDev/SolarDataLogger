@@ -80,6 +80,7 @@ void setup()
   dht.begin();
   ina219.begin();
 
+  Serial.print("Iteration,");
   Serial.print("Pin,");
   Serial.print("Light Intensity,");
   Serial.print("Temp C,");
