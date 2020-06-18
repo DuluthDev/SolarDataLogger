@@ -4,11 +4,8 @@
 #include <Adafruit_INA219.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include <Fonts/FreeSans9pt7b.h>
-#include <Fonts/FreeSans12pt7b.h>
 
 Adafruit_INA219 ina219;
-
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -20,7 +17,7 @@ DHT dht(2, DHT22);
 const int controlPin[16] = {22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37}; // define relay pins
 
 const int triggerType = LOW; // relay type
-int loopDelay = 58000;        // delay in loop
+int loopDelay = 58000;       // delay in loop
 
 int updateDisplay(int pin, int light, float volt, float amp, int temp, int humidity)
 {
@@ -99,7 +96,7 @@ void setup()
   display.setTextColor(WHITE);
   display.setRotation(0);
   display.setTextWrap(false);
-  display.setCursor(64,32);
+  display.setCursor(64, 32);
   display.setTextSize(1);
   display.println("Loading...");
   delay(1000);
@@ -127,16 +124,16 @@ void loop()
 
     // pinMode(controlPin[i], OUTPUT);   // set control pin as output
     // digitalWrite(controlPin[i], LOW); // set initial state OFF for low trigger relay
-    
+
     lightIntensity = analogRead(A1);
     voltage_mV = ina219.getBusVoltage_V();
     current_mA = ina219.getCurrent_mA();
-   
+
     // Record Shorted Current
     pinMode(12, HIGH);
-      delay(500);
-      s_voltage_mV = ina219.getBusVoltage_V();
-      s_current_mA = ina219.getCurrent_mA();
+    delay(500);
+    s_voltage_mV = ina219.getBusVoltage_V();
+    s_current_mA = ina219.getCurrent_mA();
     pinMode(12, LOW);
 
     delay(500);
