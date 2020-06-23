@@ -18,6 +18,8 @@ const int controlPin[16] = {22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 
 
 const int triggerType = LOW; // relay type
 int loopDelay = 59000;       // delay in loop
+int s_RelayPin = 12;
+int iteration = 0;
 
 int updateDisplay(int pin, int light, float volt, float amp, int temp, int humidity)
 {
@@ -66,8 +68,6 @@ int logData(int iteration, int pin, int light, float temp, float humidity, float
   Serial.println();
 };
 
-int iteration = 0;
-
 void setup()
 {
   Serial.begin(9600);
@@ -81,7 +81,7 @@ void setup()
   Serial.print("Light Intensity,");
   Serial.print("Temp C,");
   Serial.print("Humidity,");
-  Serial.print("Voltage(mV),");
+  Serial.print("Voltage(V),");
   Serial.print("Amperage(mA),");
   Serial.print("Power(mW)");
   Serial.println();
@@ -108,9 +108,7 @@ void loop()
 
   // Establish inputs
   unsigned int lightIntensity;
-  float voltage_mV = 0;
-  float current_mA = 0;
-  float s_voltage_mV = 0;
+  float voltage_V = 0;
   float s_current_mA = 0;
 
   float humidity = dht.readHumidity();
@@ -126,23 +124,20 @@ void loop()
     // digitalWrite(controlPin[i], LOW); // set initial state OFF for low trigger relay
 
     lightIntensity = analogRead(A1);
-    voltage_mV = ina219.getBusVoltage_V();
-    current_mA = ina219.getCurrent_mA();
+    voltage_V = ina219.getBusVoltage_V();
 
     // Record Shorted Current
-    pinMode(12, HIGH);
+    pinMode(s_RelayPin, HIGH);
     delay(500);
-    s_voltage_mV = ina219.getBusVoltage_V();
     s_current_mA = ina219.getCurrent_mA();
-    pinMode(12, LOW);
-
+    pinMode(s_RelayPin, LOW);
     delay(500);
 
     // Output Data
     // Log data to Serial interface
-    logData(iteration, controlPin[i], lightIntensity, temperature, humidity, voltage_mV, s_current_mA);
+    logData(iteration, controlPin[i], lightIntensity, temperature, humidity, voltage_V, s_current_mA);
     // Update Display
-    updateDisplay(controlPin[i], lightIntensity, voltage_mV, s_current_mA, temperature, humidity);
+    updateDisplay(controlPin[i], lightIntensity, voltage_V, s_current_mA, temperature, humidity);
 
     // digitalWrite(controlPin[i], HIGH); // Turn off relay
   }
