@@ -143,5 +143,3 @@ void loop()
   }
   delay(loopDelay);
 }
-
-// Test GPG Commit
