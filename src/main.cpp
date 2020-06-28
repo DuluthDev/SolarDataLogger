@@ -26,23 +26,23 @@ int updateDisplay(int pin, int light, float volt, float amp, int temp, int humid
 {
   // Prep DisplayQ
   display.clearDisplay();
-  display.setCursor(0, 0);
+  display.setCursor(0, 5);
   display.print("Pin: ");
   display.println(pin);
-  display.setCursor(64, 0);
+  display.setCursor(64, 5);
   display.print("Light: ");
   display.print(light);
-  display.setCursor(0, 10);
+  display.setCursor(0, 15);
   display.print("V's: ");
   display.print(volt);
-  display.setCursor(64, 10);
+  display.setCursor(64, 15);
   display.print("mA's: ");
   display.print(amp);
-  display.setCursor(0, 20);
+  display.setCursor(0, 25);
   display.print("Temp: ");
   display.print(temp);
   display.print("c");
-  display.setCursor(64, 20);
+  display.setCursor(64, 25);
   display.print("Humid: ");
   display.print(humidity);
   display.print("%");
@@ -69,11 +69,21 @@ int logData(int iteration, int pin, int light, float temp, float humidity, float
   Serial.println();
 };
 
-int countdownTimer(int countDown)
+int countdownTimer(int countDown, float volt, float amps)
 {
   display.clearDisplay();
-  display.setCursor(58,32);
-  display.print(countDown);
+  display.setCursor(0,0);
+  display.print("Next Scan in: ");
+  display.setCursor(50,10);
+  display.setTextSize(2);
+  display.println(countDown);
+  display.setTextSize(1);
+  display.setCursor(0,25);
+  display.print("Volts: ");
+  display.print(volt);
+  display.setCursor(64,25);
+  display.print("Amps: ");
+  display.print(amps);
   display.display();
 
 };
@@ -81,19 +91,6 @@ int countdownTimer(int countDown)
 void setup()
 {
   Serial.begin(9600);
-  Serial.println();
-
-  dht.begin();
-  ina219.begin();
-
-  Serial.print("Iteration,");
-  Serial.print("Pin,");
-  Serial.print("Light Intensity,");
-  Serial.print("Temp C,");
-  Serial.print("Humidity,");
-  Serial.print("Voltage(V),");
-  Serial.print("Amperage(mA),");
-  Serial.print("Power(mW)");
   Serial.println();
 
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
@@ -109,8 +106,20 @@ void setup()
   display.setCursor(64, 32);
   display.setTextSize(1);
   display.println("Loading...");
-  delay(1000);
   display.display();
+
+  dht.begin();
+  ina219.begin();
+
+  Serial.print("Iteration,");
+  Serial.print("Pin,");
+  Serial.print("Light Intensity,");
+  Serial.print("Temp C,");
+  Serial.print("Humidity,");
+  Serial.print("Voltage(V),");
+  Serial.print("Amperage(mA),");
+  Serial.print("Power(mW)");
+  Serial.println();
 }
 
 void loop()
@@ -154,9 +163,9 @@ void loop()
   
   // Run countdown delay
   int countDown = countDownAmnt;
-  while (countDown > 0)
+  while (countDown >= 0)
   {
-    countdownTimer(countDown);
+    countdownTimer(countDown, voltage_V, s_current_mA);
     delay(1000);
     countDown--;
   }
