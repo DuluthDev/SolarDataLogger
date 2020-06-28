@@ -68,6 +68,13 @@ int logData(int iteration, int pin, int light, float temp, float humidity, float
   Serial.println();
 };
 
+int countdownTimer(int loopDelay)
+{
+  display.clearDisplay();
+  display.setCursor(58,32);
+  display.print(loopDelay);
+};
+
 void setup()
 {
   Serial.begin(9600);
@@ -141,5 +148,10 @@ void loop()
 
     // digitalWrite(controlPin[i], HIGH); // Turn off relay
   }
-  delay(loopDelay);
+  for (loopDelay < 0; loopDelay--;)
+  {
+    countdownTimer(loopDelay);
+    delay(1000);
+  }
+  
 }
