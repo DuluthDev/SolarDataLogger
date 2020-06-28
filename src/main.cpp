@@ -79,10 +79,10 @@ int countdownTimer(int countDown, float volt, float amps)
   display.println(countDown);
   display.setTextSize(1);
   display.setCursor(0,25);
-  display.print("Volts: ");
+  display.print("V: ");
   display.print(volt);
   display.setCursor(64,25);
-  display.print("Amps: ");
+  display.print("mA: ");
   display.print(amps);
   display.display();
 
