@@ -17,7 +17,8 @@ DHT dht(2, DHT22);
 const int controlPin[16] = {22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37}; // define relay pins
 
 const int triggerType = LOW; // relay type
-int loopDelay = 59000;       // delay in loop
+
+int countDownAmnt = 59;       // countdown delay in loop
 int s_RelayPin = 12;
 int iteration = 0;
 
@@ -68,11 +69,13 @@ int logData(int iteration, int pin, int light, float temp, float humidity, float
   Serial.println();
 };
 
-int countdownTimer(int loopDelay)
+int countdownTimer(int countDown)
 {
   display.clearDisplay();
   display.setCursor(58,32);
-  display.print(loopDelay);
+  display.print(countDown);
+  display.display();
+
 };
 
 void setup()
@@ -112,7 +115,6 @@ void setup()
 
 void loop()
 {
-
   // Establish inputs
   unsigned int lightIntensity;
   float voltage_V = 0;
@@ -147,11 +149,15 @@ void loop()
     updateDisplay(controlPin[i], lightIntensity, voltage_V, s_current_mA, temperature, humidity);
 
     // digitalWrite(controlPin[i], HIGH); // Turn off relay
-  }
-  for (loopDelay < 0; loopDelay--;)
-  {
-    countdownTimer(loopDelay);
-    delay(1000);
+
   }
   
+  // Run countdown delay
+  int countDown = countDownAmnt;
+  while (countDown > 0)
+  {
+    countdownTimer(countDown);
+    delay(1000);
+    countDown--;
+  }
 }
