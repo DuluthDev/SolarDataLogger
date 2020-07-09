@@ -6,8 +6,8 @@
         {
             "name": "Win32",
             "includePath": [
-                "g:/Arduino/SolarDataLogger/include",
-                "g:/Arduino/SolarDataLogger/src",
+                "c:/Users/tyler/Projects/SolarDataLogger/include",
+                "c:/Users/tyler/Projects/SolarDataLogger/src",
                 "C:/Users/tyler/.platformio/lib/DHT sensor library_ID19",
                 "C:/Users/tyler/.platformio/lib/Adafruit ADXL343_ID6117",
                 "C:/Users/tyler/.platformio/lib/Adafruit Unified Sensor_ID31",
@@ -31,8 +31,8 @@
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
-                    "g:/Arduino/SolarDataLogger/include",
-                    "g:/Arduino/SolarDataLogger/src",
+                    "c:/Users/tyler/Projects/SolarDataLogger/include",
+                    "c:/Users/tyler/Projects/SolarDataLogger/src",
                     "C:/Users/tyler/.platformio/lib/DHT sensor library_ID19",
                     "C:/Users/tyler/.platformio/lib/Adafruit ADXL343_ID6117",
                     "C:/Users/tyler/.platformio/lib/Adafruit Unified Sensor_ID31",
